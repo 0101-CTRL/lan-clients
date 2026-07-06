@@ -527,3 +527,63 @@ th:nth-last-child(-n+2) .th-help.has-tooltip::before {
 .table-help-strip .inline-info-dot {
   flex: 0 0 auto;
 }
+
+
+/* v1.4 simplify recency labels
+   The timestamp cell now uses plain source text instead of a warning-style badge. */
+th:first-child { min-width: 175px; }
+.timestamp-cell {
+  min-width: 170px;
+  max-width: 210px;
+}
+.timestamp-note {
+  margin-top: 7px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  display: block;
+  max-width: 190px;
+}
+.timestamp-note .note-head {
+  justify-content: flex-start;
+  gap: 5px;
+  line-height: 1.2;
+}
+.timestamp-note span {
+  color: #cbd8e8;
+  font-size: 12px;
+  font-weight: 850;
+  line-height: 1.2;
+}
+.timestamp-note small {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.25;
+}
+.timestamp-note.report-source,
+.timestamp-note.fallback-source,
+.timestamp-note.unknown-source {
+  background: transparent;
+  border: 0;
+}
+.timestamp-note.report-source span { color: #b9f5cc; }
+.timestamp-note.fallback-source span { color: #f1d88f; }
+.timestamp-note.unknown-source span { color: #d8c8ff; }
+.timestamp-note .info-tip.mini-help {
+  width: 14px;
+  height: 14px;
+  min-width: 14px;
+  font-size: 9px;
+  margin-left: 3px;
+  opacity: .86;
+}
+.activity {
+  max-width: 100%;
+  white-space: normal;
+  line-height: 1.15;
+}
+.cell-line .info-tip.in-cell {
+  flex: 0 0 auto;
+}

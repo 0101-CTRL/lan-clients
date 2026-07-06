@@ -464,12 +464,12 @@ function updateSnapshotNotice(shownRows, allRows) {
 
 function timestampHintFor(info) {
   if (!info.raw) {
-    return `<div class="timestamp-note unknown-source"><div class="note-head"><span>No usable timestamp</span>${infoTip(timestampTooltipFor(info), 'mini-help')}</div></div>`;
+    return `<div class="timestamp-note unknown-source"><div class="note-head"><span>Timestamp unavailable</span>${infoTip(timestampTooltipFor(info), 'mini-help')}</div><small>Cannot estimate freshness</small></div>`;
   }
   if (info.isFallback) {
-    return `<div class="timestamp-note fallback-source"><div class="note-head"><span>Record timestamp</span>${infoTip(timestampTooltipFor(info), 'mini-help')}</div><small>collection_time not returned</small></div>`;
+    return `<div class="timestamp-note fallback-source"><div class="note-head"><span>NCM record update</span>${infoTip(timestampTooltipFor(info), 'mini-help')}</div><small>No router report time</small></div>`;
   }
-  return `<div class="timestamp-note report-source"><div class="note-head"><span>Router report</span>${infoTip(timestampTooltipFor(info), 'mini-help')}</div><small>collection_time</small></div>`;
+  return `<div class="timestamp-note report-source"><div class="note-head"><span>Router report time</span>${infoTip(timestampTooltipFor(info), 'mini-help')}</div><small>Best available client-report timestamp</small></div>`;
 }
 
 function updatePager() {
@@ -674,18 +674,18 @@ function activityFor(c, cutoff) {
   const ts = timestampInfoForClient(c);
   const mins = ageMinutes(ts.raw);
   if (!Number.isFinite(mins)) {
-    return { state: 'unknown', className: 'unknown', label: 'Time unknown', detail: 'No report timestamp', warn: true };
+    return { state: 'unknown', className: 'unknown', label: 'No timestamp', detail: 'freshness cannot be estimated', warn: true };
   }
   if (mins <= cutoff) {
     if (ts.isFallback) {
-      return { state: 'active', className: 'active fallback', label: 'Recent record update', detail: `not confirmed live · ${relativeAge(ts.raw)}`, warn: true };
+      return { state: 'active', className: 'active fallback', label: 'Record updated recently', detail: `not confirmed connected · ${relativeAge(ts.raw)}`, warn: true };
     }
-    return { state: 'active', className: 'active', label: 'Seen in recent report', detail: `router report ${relativeAge(ts.raw)}`, warn: false };
+    return { state: 'active', className: 'active', label: 'Recently reported', detail: `router report · ${relativeAge(ts.raw)}`, warn: false };
   }
   if (ts.isFallback) {
-    return { state: 'previous', className: 'previous fallback', label: 'Older record update', detail: `not confirmed live · ${relativeAge(ts.raw)}`, warn: true };
+    return { state: 'previous', className: 'previous fallback', label: 'Older NCM record', detail: `not confirmed connected · ${relativeAge(ts.raw)}`, warn: true };
   }
-  return { state: 'previous', className: 'previous', label: 'Previously seen', detail: `router report ${relativeAge(ts.raw)}`, warn: true };
+  return { state: 'previous', className: 'previous', label: 'Older router report', detail: `reported ${relativeAge(ts.raw)}`, warn: true };
 }
 
 function infoTip(text, extraClass = '') {
@@ -695,16 +695,16 @@ function infoTip(text, extraClass = '') {
 
 function activityTooltipFor(c, activity, ts, cutoff) {
   if (!ts.raw) {
-    return 'The endpoint did not return a parseable collection_time or updated_at value for this row, so the UI cannot infer whether this client was recently seen.';
+    return 'NCM did not return a usable time for this client row, so the UI cannot estimate whether it is recent or stale.';
   }
   const age = relativeAge(ts.raw);
   if (ts.isFallback) {
-    return `This row is using updated_at because collection_time was not returned. updated_at means the NCM record changed ${age}; it does not confirm the client is live or currently connected. The recent cutoff is ${cutoff} minutes.`;
+    return `NCM did not return collection_time for this row, so this estimate is based on updated_at. That means the stored NCM record changed ${age}; it does not prove the client is connected right now. Recent cutoff: ${cutoff} minutes.`;
   }
   if (activity.state === 'active') {
-    return `This row has collection_time, which is the preferred timestamp for router-reported LAN-client data. Because it is within the ${cutoff}-minute freshness cutoff (${age}), the UI labels it as recently seen. This is still an inference from stored NCM data, not a guaranteed live connected flag.`;
+    return `This estimate is based on collection_time. The row was included in a router LAN-client report ${age}, which is inside the ${cutoff}-minute cutoff. It is still stored NCM data, not a live connected/disconnected flag.`;
   }
-  return `This row has collection_time, but it is older than the ${cutoff}-minute freshness cutoff (${age}). The client may be offline now, or it may simply not have been included in a newer stored report.`;
+  return `This estimate is based on collection_time, but the router report is older than the ${cutoff}-minute cutoff (${age}). The client may be disconnected, or it may simply not have a newer stored report yet.`;
 }
 
 function timestampTooltipFor(info) {
@@ -712,9 +712,9 @@ function timestampTooltipFor(info) {
     return 'No usable timestamp was returned. The UI cannot calculate a reliable age for this LAN-client row.';
   }
   if (info.isFallback) {
-    return 'collection_time was not returned for this row. The timestamp shown is updated_at, which is when the NCM record was updated. It is lower confidence and should not be treated as a confirmed router LAN-client report time.';
+    return 'NCM did not return collection_time for this row. The time shown is updated_at, which only means the stored NCM record changed. Use it as a rough recency hint only; it does not prove the client is connected.';
   }
-  return 'This timestamp comes from collection_time. It represents when LAN-client data was last received by the router/cloud pipeline. Multiple clients can share one collection_time because they were included in the same LAN-client table report.';
+  return 'This timestamp comes from collection_time, the best available time for router-reported LAN-client data. Multiple clients can share one collection_time because they were part of the same stored LAN-client report.';
 }
 
 function healthTooltipFor(c) {

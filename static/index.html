@@ -184,12 +184,12 @@
         <h3>No clients loaded yet</h3>
         <p>For the least confusing first run, paste a token, enter one router ID, leave client type as “All”, and click Fetch latest stored records. The first view shows clients seen in a recent router report when collection_time is available. If the endpoint omits collection_time, rows are marked “Record updated” instead so they are not mistaken for confirmed router-report timestamps.</p>
       </div>
-      <div class="table-help-strip">Hover the <span class="inline-info-dot">?</span> icons for field-by-field context. Several values are inferred from stored NCM records and should not be read as guaranteed live state. Export shown CSV respects the current table filters; Export fetched CSV includes every row returned by the current API page. CSV downloads use a .csv filename with Excel-friendly formatting.</div>
+      <div class="table-help-strip">Hover the <span class="inline-info-dot">?</span> icons for field-by-field context. Several values are freshness estimates from stored NCM records and should not be read as guaranteed live state. Export shown CSV respects the current table filters; Export fetched CSV includes every row returned by the current API page. CSV downloads use a .csv filename with Excel-friendly formatting.</div>
       <div class="table-wrap">
         <table>
           <thead>
             <tr>
-              <th><span class="th-help has-tooltip" tabindex="0" data-tip="This is the UI's best guess from the row timestamp. It is not a live connected/disconnected flag from the endpoint.">Activity inference <span class="info-dot">?</span></span></th>
+              <th><span class="th-help has-tooltip" tabindex="0" data-tip="This is a freshness estimate from the row timestamp. It is not a live connected/disconnected flag from the endpoint.">Freshness estimate <span class="info-dot">?</span></span></th>
               <th><span class="th-help has-tooltip" tabindex="0" data-tip="For Wi-Fi this summarizes RSSI signal quality. For Ethernet/Bluetooth/unknown clients it is just a client type/status hint.">Signal / status <span class="info-dot">?</span></span></th>
               <th>Client</th>
               <th>IP / MAC</th>

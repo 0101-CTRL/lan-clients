@@ -11,8 +11,12 @@ Environment=PORT=8093
 ExecStart=/opt/api-v3-lan-clients-ui/run_local.sh
 Restart=always
 RestartSec=3
-User=www-data
-Group=www-data
+
+# Change these if your Linux user is not ubuntu.
+# The user/group below must be able to read and write /opt/api-v3-lan-clients-ui
+# because run_local.sh creates/uses the local Python virtual environment.
+User=ubuntu
+Group=ubuntu
 
 [Install]
 WantedBy=multi-user.target

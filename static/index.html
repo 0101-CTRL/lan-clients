@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>APIv3 LAN Clients Console</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <div class="shell">
+    <header class="hero compact-hero">
+      <div class="hero-copy">
+        <div class="eyebrow">Ericsson / Cradlepoint APIv3 beta</div>
+        <h1>LAN Clients</h1>
+        <p class="hero-lede">Find the devices last seen behind a router — Wi‑Fi, Ethernet, Bluetooth, or unknown clients.</p>
+        <div class="endpoint-line"><code>GET /api/v3/beta/lan_clients</code><span>List endpoint only. No single-client lookup by ID.</span></div>
+      </div>
+      <div class="hero-actions">
+        <div id="authPill" class="pill muted"><span class="dot"></span> Token not checked</div>
+        <button id="loadBtn" class="primary big-action">Fetch latest stored records</button>
+      </div>
+    </header>
+
+    <section class="guided-grid">
+      <article class="card start-card">
+        <div class="section-kicker">Start here</div>
+        <h2>1. Connect to NCM</h2>
+        <p class="plain-help">Paste an APIv3 bearer token. The token stays in this browser unless you choose to remember it.</p>
+
+        <div class="form-stack roomy">
+          <label>Base URL
+            <input id="baseUrl" value="https://api.cradlepointecm.com" spellcheck="false" />
+          </label>
+          <label>Bearer token
+            <input id="token" type="password" placeholder="Paste bearer token" spellcheck="false" autocomplete="off" />
+          </label>
+        </div>
+
+        <div class="inline-options calm-row">
+          <label class="check"><input id="rememberToken" type="checkbox" /> remember token in this browser</label>
+          <div class="button-row tight">
+            <button id="checkTokenBtn" class="secondary">Check token</button>
+            <button id="clearTokenBtn" class="ghost">Clear</button>
+          </div>
+        </div>
+      </article>
+
+      <article class="card query-card">
+        <div class="section-kicker">Query builder</div>
+        <div class="card-title-row no-margin">
+          <div>
+            <h2>2. Choose what to load</h2>
+            <p class="plain-help">Most people start with a router ID. Leave fields blank to search the account more broadly.</p>
+          </div>
+          <button id="resetFiltersBtn" class="ghost">Reset filters</button>
+        </div>
+
+        <div class="router-row three-col">
+          <label>Router ID or IDs <span class="recommended">recommended</span>
+            <input id="routerFilter" placeholder="Example: 5327382 or 5327382,5083637" spellcheck="false" />
+          </label>
+          <label>Client type
+            <select id="networkTypeFilter">
+              <option value="">All client types</option>
+              <option value="wifi">Wi‑Fi only</option>
+              <option value="ethernet">Ethernet only</option>
+              <option value="bluetooth">Bluetooth only</option>
+              <option value="unknown">Unknown only</option>
+              <option value="wifi,ethernet">Wi‑Fi + Ethernet</option>
+            </select>
+          </label>
+          <label>Client freshness
+            <select id="freshnessFilter">
+              <option value="active">Seen in recent report</option>
+              <option value="previous">Previously seen / older records</option>
+              <option value="all">All known clients</option>
+              <option value="unknown">Time unknown</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="quick-row primary-chips" aria-label="Quick filters">
+          <button data-freshness="active" class="chip strong-chip">Seen in recent report</button>
+          <button data-freshness="previous" class="chip">Previously seen</button>
+          <button data-freshness="all" class="chip">All known</button>
+          <button data-network="wifi" class="chip">Wi‑Fi</button>
+          <button data-network="ethernet" class="chip">Ethernet</button>
+          <button data-network="wifi,ethernet" class="chip">Wi‑Fi + Ethernet</button>
+        </div>
+
+        <details class="advanced-box">
+          <summary>Advanced filters and pagination</summary>
+          <div class="advanced-grid">
+            <label>Hostname filter
+              <input id="hostnameFilter" placeholder="iPhone or iPhone,Precision-3240" spellcheck="false" />
+            </label>
+            <label>Page size
+              <input id="pageLimit" type="number" min="1" max="500" value="100" />
+            </label>
+            <label>Timestamp freshness assumption
+              <select id="cadencePreset">
+                <option value="essentials">Essentials / conservative — 90 min</option>
+                <option value="advanced">Advanced / faster telemetry — 15 min</option>
+                <option value="custom">Custom cutoff</option>
+              </select>
+            </label>
+            <label id="customCutoffLabel">Recent cutoff, minutes
+              <input id="activeCutoffMinutes" type="number" min="1" max="1440" value="90" />
+            </label>
+            <label>After cursor
+              <input id="afterCursor" placeholder="from meta.pagination.after" spellcheck="false" />
+            </label>
+            <label>Before cursor
+              <input id="beforeCursor" placeholder="from meta.pagination.before" spellcheck="false" />
+            </label>
+          </div>
+          <p class="mini guidance">Cursors are only needed when NCM returns more pages. Use the Previous/Next buttons below the table instead of pasting cursors manually. “Seen in recent report” requires collection_time. If collection_time is missing, the UI shows updated_at as “Record updated” and treats freshness as a lower-confidence estimate. The GET request fetches the latest stored NCM records; it does not force the router to rescan LAN clients.</p>
+        </details>
+
+        <div class="run-bar">
+          <div>
+            <b>Ready to fetch stored NCM data</b>
+            <p id="querySummary">This will call the LAN clients endpoint using the filters above.</p>
+          </div>
+          <button id="loadBtnInline" class="primary">Fetch latest stored records</button>
+        </div>
+      </article>
+    </section>
+
+    <section class="card explainer-card">
+      <div class="explainer-grid">
+        <div>
+          <div class="section-kicker">What this endpoint tells you</div>
+          <h2>A LAN client is a device last reported behind a router.</h2>
+          <p>Useful for quickly answering: “What clients are on this router?”, “Is this client wired or Wi‑Fi?”, “What IP/MAC did the router last know?”, and “How fresh is the router’s client report?”</p>
+        </div>
+        <div class="concept-list">
+          <div><b>collection_time</b><span>Best signal for when the router reported the LAN-client table. Multiple clients often share the same timestamp.</span></div>
+          <div><b>record updated time</b><span>Shown only when collection_time is missing. This is lower confidence: the NCM record changed, but it is not proof of a live client report.</span></div>
+          <div><b>connected_seconds</b><span>Duration as of the reported record; not a live proof of current connection.</span></div>
+          <div><b>rxrate / txrate</b><span>Wi‑Fi last-reported rates, not live throughput. Docs call out 5 min Advanced / 60 min Essentials cadence for these values.</span></div>
+          <div><b>Last API fetch</b><span>When this UI asked NCM for stored records. A new fetch may still return the same report timestamp.</span></div><div><b>Manual refresh</b><span>This endpoint is GET-only here; no documented rescan/force-review action is exposed by lan_clients.</span></div>
+          <div><b>rssi</b><span>Wi‑Fi signal quality from the client/AP perspective.</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="stats snapshot-stats" id="stats">
+      <article class="stat"><span id="statTotal">—</span><label>shown / loaded</label></article>
+      <article class="stat"><span id="statActive">—</span><label>seen in recent report</label></article>
+      <article class="stat"><span id="statPrevious">—</span><label>previously seen</label></article>
+      <article class="stat"><span id="statWifi">—</span><label>Wi‑Fi clients</label></article>
+      <article class="stat"><span id="statEthernet">—</span><label>Ethernet clients</label></article>
+      <article class="stat"><span id="statRouters">—</span><label>routers seen</label></article>
+      <article class="stat snapshot-stat"><span id="statSnapshotAge">—</span><label>latest timestamp</label></article>
+      <article class="stat snapshot-stat"><span id="statApiFetch">—</span><label>last API fetch</label></article>
+    </section>
+
+    <section id="snapshotNotice" class="snapshot-notice" hidden>
+      <div class="snapshot-icon">🧭</div>
+      <div>
+        <b id="snapshotTitle">Timestamp source behavior detected</b>
+        <p id="snapshotText">LAN client timestamps will appear here after loading data.</p>
+      </div>
+    </section>
+
+    <section class="card table-card">
+      <div class="card-title-row table-tools">
+        <div>
+          <div class="section-kicker">Results</div>
+          <h2>Known LAN clients</h2>
+          <p id="resultHint">Enter a token, optionally add a router ID, then load LAN clients. Default view shows clients seen in a recent router report.</p>
+        </div>
+        <div class="table-actions">
+          <input id="localSearch" placeholder="Search loaded rows" spellcheck="false" />
+          <button id="showHistoryBtn" class="secondary">GET history</button>
+          <button id="exportShownCsvBtn" class="secondary">Export shown CSV</button>
+          <button id="exportCsvBtn" class="secondary">Export fetched CSV</button>
+          <button id="exportJsonBtn" class="secondary">Export raw JSON</button>
+        </div>
+      </div>
+      <div id="emptyState" class="empty-state">
+        <div class="empty-icon">🔎</div>
+        <h3>No clients loaded yet</h3>
+        <p>For the least confusing first run, paste a token, enter one router ID, leave client type as “All”, and click Fetch latest stored records. The first view shows clients seen in a recent router report when collection_time is available. If the endpoint omits collection_time, rows are marked “Record updated” instead so they are not mistaken for confirmed router-report timestamps.</p>
+      </div>
+      <div class="table-help-strip">Hover the <span class="inline-info-dot">?</span> icons for field-by-field context. Several values are inferred from stored NCM records and should not be read as guaranteed live state. Export shown CSV respects the current table filters; Export fetched CSV includes every row returned by the current API page. CSV downloads use a .csv filename with Excel-friendly formatting.</div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th><span class="th-help has-tooltip" tabindex="0" data-tip="This is the UI's best guess from the row timestamp. It is not a live connected/disconnected flag from the endpoint.">Activity inference <span class="info-dot">?</span></span></th>
+              <th><span class="th-help has-tooltip" tabindex="0" data-tip="For Wi-Fi this summarizes RSSI signal quality. For Ethernet/Bluetooth/unknown clients it is just a client type/status hint.">Signal / status <span class="info-dot">?</span></span></th>
+              <th>Client</th>
+              <th>IP / MAC</th>
+              <th>Type</th>
+              <th>Router</th>
+              <th><span class="th-help has-tooltip" tabindex="0" data-tip="connected_seconds is the duration reported in the stored record. Treat it as duration as of that report, not a live timer.">Connected <span class="info-dot">?</span></span></th>
+              <th><span class="th-help has-tooltip" tabindex="0" data-tip="collection_time is preferred because it represents router-reported LAN-client data. If collection_time is missing, the UI falls back to updated_at, which is only a record update timestamp.">Timestamp <span class="info-dot">?</span></span></th>
+              <th>Manufacturer</th>
+              <th><span class="th-help has-tooltip" tabindex="0" data-tip="Wi-Fi details such as rxrate and txrate are last-reported values. They are not live throughput measurements.">Wi‑Fi details <span class="info-dot">?</span></span></th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="clientsBody">
+            <tr><td colspan="11" class="empty">No clients loaded yet.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="pager">
+        <button id="prevBtn" class="secondary" disabled>Previous page</button>
+        <span id="pageInfo">Pagination appears after the first load.</span>
+        <button id="nextBtn" class="secondary" disabled>Next page</button>
+      </div>
+    </section>
+
+    <section id="historyCard" class="card history-card">
+      <div class="card-title-row table-tools">
+        <div>
+          <div class="section-kicker">Actual GET history</div>
+          <h2>Requests made by this browser</h2>
+          <p id="historyHint">Shows the actual NCM API URL, status, result count, filters, and duration for recent token checks and LAN client loads.</p>
+        </div>
+        <div class="table-actions">
+          <button id="exportHistoryBtn" class="secondary">Export history CSV</button>
+          <button id="clearHistoryBtn" class="ghost">Clear history</button>
+        </div>
+      </div>
+      <div class="history-empty" id="historyEmpty">No GET requests captured yet.</div>
+      <div class="table-wrap history-wrap">
+        <table class="history-table">
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Action</th>
+              <th>Status</th>
+              <th>Rows</th>
+              <th>Latest timestamp</th>
+              <th>Duration</th>
+              <th>URL</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="historyBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <details class="card tools-drawer">
+      <summary>Troubleshooting tools: curl preview and raw response</summary>
+      <div class="tools-grid">
+        <article>
+          <div class="card-title-row small-title-row">
+            <div>
+              <h2>Request preview</h2>
+              <p>Copy this when you need to reproduce the exact request outside the UI.</p>
+            </div>
+            <button id="copyCurlBtn" class="ghost">Copy curl</button>
+          </div>
+          <pre id="curlPreview" class="codeblock">curl preview will appear here.</pre>
+        </article>
+        <article>
+          <div class="card-title-row small-title-row">
+            <div>
+              <h2>Raw response</h2>
+              <p>Status, requested URL, and JSON:API payload.</p>
+            </div>
+            <button id="toggleRawBtn" class="ghost">Collapse</button>
+          </div>
+          <pre id="rawOutput" class="codeblock raw">No response yet.</pre>
+        </article>
+      </div>
+    </details>
+  </div>
+
+  <dialog id="detailDialog">
+    <div class="dialog-head">
+      <div>
+        <h2 id="detailTitle">Client detail</h2>
+        <p id="detailSubtitle"></p>
+      </div>
+      <button id="closeDialogBtn" class="ghost">Close</button>
+    </div>
+    <pre id="detailJson" class="codeblock raw"></pre>
+  </dialog>
+
+  <div id="toast" class="toast"></div>
+  <script src="/static/app.js"></script>
+</body>
+</html>

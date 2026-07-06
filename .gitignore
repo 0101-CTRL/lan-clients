@@ -1,0 +1,43 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+.env.*
+!.env.example
+
+# Local runtime/cache
+*.log
+*.db
+*.sqlite
+*.sqlite3
+*.jsonl
+*.tmp
+.cache/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Exported/customer/API data
+*.csv
+exports/
+downloads/
+get-history*
+history*
+api-history*
+lan-clients-*.json
+lan-clients-*.csv
+
+# Backups
+*.bak
+*.bak.*
+static.bak.*/
+app.py.bak.*
+README.md.bak.*
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

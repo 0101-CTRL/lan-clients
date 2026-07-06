@@ -94,7 +94,6 @@ button:disabled { opacity: .45; cursor: not-allowed; transform: none; }
 .pill.bad .dot { background: var(--red); box-shadow: 0 0 0 4px rgba(255,115,115,.13); }
 .pill.working .dot { background: var(--yellow); box-shadow: 0 0 0 4px rgba(255,209,102,.13); }
 .router-row { display: grid; grid-template-columns: minmax(260px, 1.2fr) minmax(180px, .8fr); gap: 12px; }
-.recommended { color: #102033; background: #cde6ff; padding: 2px 7px; border-radius: 999px; margin-left: 6px; font-size: 11px; font-weight: 900; }
 .quick-row { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 14px; }
 .chip { padding: 9px 12px; border-radius: 999px; font-size: 13px; background: rgba(255,255,255,.085); border: 1px solid rgba(255,255,255,.10); }
 .primary-chips .chip:first-child { background: rgba(121,184,255,.17); border-color: rgba(121,184,255,.24); }
